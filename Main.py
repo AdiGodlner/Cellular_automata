@@ -1,7 +1,20 @@
 import tkinter as tk
-
+import Cell
+import CellConfigMSG
+from Sea import Sea
+from Forest import Forest
+from IceBerg import IceBerg
+from City import City
+from Land import Land
 import random
 import time
+
+
+def random_cell():
+    # Randomly choose a cell type (e.g., NormalCell or SpecialCell)
+    cell_type = random.choice([Land, Sea, Forest, City, IceBerg])
+    # Create an instance of the chosen cell type
+    return cell_type()
 
 
 class CA:
@@ -16,12 +29,13 @@ class CA:
         self.canvas.pack()
 
         # randomize board for game of life
-        self.green_board = [[random.choice([0, 1]) for _ in range(width)] for _ in range(height)]
+        # self.green_board = [[random.choice([0, 1]) for _ in range(width)] for _ in range(height)]
+        self.green_board = [[random_cell() for _ in range(width)] for _ in range(height)]
         self.blue_board = deep_copy(self.green_board)
         self.curr_board = "green"
 
     def draw_board(self):
-        self.canvas.delete("all")
+        self.canvas.delete("grid")
 
         board = self.get_active_board()
 
@@ -29,39 +43,60 @@ class CA:
             for j in range(self.width):
                 x1, y1 = j * self.cell_size, i * self.cell_size
                 x2, y2 = x1 + self.cell_size, y1 + self.cell_size
-                color = "black" if board[i][j] == 1 else "white"
-                self.canvas.create_rectangle(x1, y1, x2, y2, outline="gray", fill=color)
+
+                currCell = board[i][j]
+                color = currCell.color
+
+                self.canvas.create_rectangle(x1, y1, x2, y2, outline="gray", fill=color, tags="grid")
+                # Calculate the available space inside the rectangle
+                available_width = x2 - x1
+                available_height = y2 - y1
+
+                # Choose a font size that fits the available space
+                font_size = min(available_width // 2, available_height // 2)
+
+                # Draw the text at the center of the rectangle
+                self.canvas.create_text((x1 + x2) // 2, (y1 + y2) // 2, text=currCell.name,
+                                        font=("Arial", font_size, "bold"))
 
     def update_board(self):
-        #  TODO update board with info of CA rules
 
         background_board = self.get_background_board()
         active_board = self.get_active_board()
 
         for i in range(self.height):
             for j in range(self.width):
-                neighbors = self.count_neighbors(i, j)
-                if active_board[i][j] == 1:
-                    background_board[i][j] = 1 if 2 <= neighbors <= 3 else 0
-                else:
-                    background_board[i][j] = 1 if neighbors == 3 else 0
+                # get current cell and its neighbors
+                currCell = active_board[i][j]
+                neighbors = self.get_neighbors(i, j)
+                # calculate the current cell configuration for next time step
+                cellConfigMSG = currCell.calcUpdate(neighbors)
+
+                # get background board cell and set its configuration to the next time curr cell config
+                background_cell = background_board[i][j]
+                background_cell.update(cellConfigMSG)
 
         # switch active board
         self.curr_board = "blue" if self.curr_board == "green" else "green"
 
-    def count_neighbors(self, row, col):
+    def get_neighbors(self, row, col):
 
-        count = 0
+        neighbors = []
         board = self.get_active_board()
 
         for i in range(-1, 2):
             for j in range(-1, 2):
+
                 if i == 0 and j == 0:
+                    # skip current cell
                     continue
+
                 neighbor_row, neighbor_col = row + i, col + j
                 if 0 <= neighbor_row < self.height and 0 <= neighbor_col < self.width:
-                    count += board[neighbor_row][neighbor_col]
-        return count
+                    # if we are inside the board
+                    neighbors.append(board[neighbor_row][neighbor_col])
+
+        return neighbors
 
     def start_game(self, generations=100):
         for _ in range(generations):
