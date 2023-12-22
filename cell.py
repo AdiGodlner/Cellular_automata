@@ -1,19 +1,17 @@
-import CellConfigMSG
-import random
-from Wind import Wind, randomWind
+from wind import Wind, randomWind
 
 
 class Cell:
 
-    def __init__(self, color, text):
-        self.height = None
-        self.temperature = random.randint(0, 100)
-        self.wind = randomWind()
+    def __init__(self, height, temperature, wind, color, text):
+        self.height = height
+        self.temperature = temperature
+        self.wind = wind
         self.text = text
         self.color = color
         self.time = 0  # a ticking clock that goes between 0 and 100 to vary temperature by season
 
-    def update(self, configuration: CellConfigMSG):
+    def update(self, configuration):
         self.time += 1
         self.temperature = configuration.temperature
         self.wind = configuration.wind
