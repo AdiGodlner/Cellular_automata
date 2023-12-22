@@ -1,6 +1,5 @@
 from CellConfigMSG import CellConfigMSG
 
-
 from Cell import Cell
 
 
@@ -10,8 +9,15 @@ class Sea(Cell):
         super().__init__("blue", "S")
         self.height = 0  # sea starts at sea level ?
 
-    def update(self, configuration):
-        pass
+    def copy(self):
+        cellCopy = Sea()
+        cellCopy.temperature = self.temperature
+        cellCopy.wind = self.wind.copy()
+        cellCopy.height = self.height
+        return cellCopy
 
-    def calcUpdate(self, neighbors):
-        return CellConfigMSG(type(self), self.height, self.temperature, self.clouds, self.wind)
+    def calcUpdate(self, neighborhood):
+        temperature = self.calcTemperature(neighborhood)
+        wind = self.calcWind(neighborhood)
+
+        return CellConfigMSG(type(self), self.height, temperature, wind)

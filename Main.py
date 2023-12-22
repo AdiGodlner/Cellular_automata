@@ -1,4 +1,5 @@
 import tkinter as tk
+from typing import List
 import Cell
 import CellConfigMSG
 from Sea import Sea
@@ -9,10 +10,21 @@ from Land import Land
 import random
 import time
 
+# constants #TODO maybe this should be in if name == main
+LAND_P = 0.14
+CITY_P = 0.07
+FOREST_P = 0.06
+SEA_P = 0.7
+ICEBERG_P = 0.03
+
 
 def random_cell():
-    # Randomly choose a cell type (e.g., NormalCell or SpecialCell)
-    cell_type = random.choice([Land, Sea, Forest, City, IceBerg])
+    # Randomly choose a cell type (e.g., Land , Sea, Ice )
+    options = [Land, City, Forest, Sea, IceBerg]
+    probabilities = [LAND_P, CITY_P, FOREST_P, SEA_P, ICEBERG_P]  # Adjust these probabilities as needed
+
+    cell_type = random.choices(options, weights=probabilities, k=1)[0]
+
     # Create an instance of the chosen cell type
     return cell_type()
 
@@ -23,7 +35,6 @@ class CA:
         self.width = width
         self.height = height
         self.cell_size = cell_size
-
         self.canvas = tk.Canvas(self.window, width=width * cell_size, height=height * cell_size, borderwidth=0,
                                 highlightthickness=0)
         self.canvas.pack()
@@ -33,6 +44,10 @@ class CA:
         self.green_board = [[random_cell() for _ in range(width)] for _ in range(height)]
         self.blue_board = deep_copy(self.green_board)
         self.curr_board = "green"
+
+        self.average_temperature = 0
+        self.average_temperature_label = tk.Label(self.window, text="Average Temperature: N/A")
+        self.average_temperature_label.pack()
 
     def draw_board(self):
         self.canvas.delete("grid")
@@ -56,47 +71,75 @@ class CA:
                 font_size = min(available_width // 2, available_height // 2)
 
                 # Draw the text at the center of the rectangle
-                self.canvas.create_text((x1 + x2) // 2, (y1 + y2) // 2, text=currCell.name,
+                # cloudsText = "C" if currCell.wind.clouds else "_"
+                self.canvas.create_text((x1 + x2) // 2, (y1 + y2) // 2, text=currCell.text,
                                         font=("Arial", font_size, "bold"))
+
+        # redraw average temperature
+        self.average_temperature_label.config(text=f"Average Temperature: {self.average_temperature}")
 
     def update_board(self):
 
         background_board = self.get_background_board()
+        foo = background_board[0]
+        bar = background_board[0][0]
         active_board = self.get_active_board()
+        totalTmep = 0
 
         for i in range(self.height):
             for j in range(self.width):
                 # get current cell and its neighbors
                 currCell = active_board[i][j]
-                neighbors = self.get_neighbors(i, j)
+                neighborhood = self.get_neighborhood(i, j)
                 # calculate the current cell configuration for next time step
-                cellConfigMSG = currCell.calcUpdate(neighbors)
+                cellConfigMSG = currCell.calcUpdate(neighborhood)
 
                 # get background board cell and set its configuration to the next time curr cell config
                 background_cell = background_board[i][j]
                 background_cell.update(cellConfigMSG)
 
+                # calculate average temperature of board
+                totalTmep += currCell.temperature
+
+        self.average_temperature = totalTmep / (self.height * self.width)
         # switch active board
         self.curr_board = "blue" if self.curr_board == "green" else "green"
 
-    def get_neighbors(self, row, col):
+    def get_neighborhood(self, row, col):
 
-        neighbors = []
+        neighborhood = []
         board = self.get_active_board()
 
         for i in range(-1, 2):
+            newRow = []
+            neighborhood.append(newRow)
+
+            neighbor_row = row + i
+
+            # make graph spherical by making rows circular
+            if neighbor_row < 0:
+                neighbor_row = self.height - 1
+            elif neighbor_row == self.height:
+                neighbor_row = 0
+
             for j in range(-1, 2):
 
                 if i == 0 and j == 0:
-                    # skip current cell
+                    # current knows it's in its own neighborhood so there is no need to add itself to the
+                    # neighborhood matrix, so we add None instead and skip other logic in the loop
+                    newRow.append(None)
                     continue
 
-                neighbor_row, neighbor_col = row + i, col + j
-                if 0 <= neighbor_row < self.height and 0 <= neighbor_col < self.width:
-                    # if we are inside the board
-                    neighbors.append(board[neighbor_row][neighbor_col])
+                neighbor_col = col + j
+                # make graph spherical by making columns circular
+                if neighbor_col < 0:
+                    neighbor_col = self.width - 1
+                elif neighbor_col == self.width:
+                    neighbor_col = 0
 
-        return neighbors
+                newRow.append(board[neighbor_row][neighbor_col])
+
+        return neighborhood
 
     def start_game(self, generations=100):
         for _ in range(generations):
@@ -121,8 +164,14 @@ def deep_copy(board):
     boardCopy = []
     # iterate through the rows of the original board
     for i in range(len(board)):
-        # create a new list by copying the elements of each row
-        boardCopy.append(board[i].copy())
+
+        newRow = []
+        boardCopy.append(newRow)
+
+        for j in range(len(board[0])):
+            # create a new list by copying the elements of each row
+            newRow.append(board[i][j].copy())
+
     return boardCopy
 
 
@@ -130,10 +179,10 @@ if __name__ == '__main__':
     #  TODO remember in documentation and read me there is a need to install tkinter
     # and or make into an exe
 
-    width, height = 30, 20
-    cell_size = 20
+    _width, _height = 10, 10
+    _cell_size = 70
 
-    game = CA(width, height, cell_size)
+    game = CA(_width, _height, _cell_size)
     game.start_game()
     # window.mainloop() # what is that and what does it do
 
