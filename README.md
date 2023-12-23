@@ -10,8 +10,12 @@ A cellular automata simulation of global warming
 ### General
 - change text to all new cells
 - present text in cells in a viewable way 
+### cellular automata view 
 - canvas rectangles and text return an ID 
-  save the canvas instead of creating and deleting rectangles all the time
+  save the canvas instead of creating and deleting rectangles all the time ?
+- or maybe use grid ? and labels with ids to change the background color and text based on active board
+- should the cellular autommat viewr wrap the class offer all CA ethos 
+    but call the CA given to it 
 ### Wind
 - clouds should decrease temperature 
 - what should rain do 

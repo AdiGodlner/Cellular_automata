@@ -1,22 +1,25 @@
 import tkinter as tk
+from tkinter import ttk
 
 
-class CellularAutomataViewer:
+class CellularAutomataViewer(ttk.Frame):
 
-    def __init__(self, parentFrame, cellularAutomata, width, height, cell_size):
-        self.parentFrame = parentFrame
+    def __init__(self, parent, cellularAutomata, width, height, cell_size):
+        super().__init__(parent)
         self.cellularAutomata = cellularAutomata
         self.width = width
         self.height = height
         self.cell_size = cell_size
-        self.parentFrame.grid_rowconfigure(0, weight=1)
-        self.parentFrame.grid_columnconfigure(0, weight=1)
-        self.canvas = tk.Canvas(self.parentFrame, width=width * cell_size, height=height * cell_size, borderwidth=0,
+        self.canvas = tk.Canvas(self, width=width * cell_size, height=height * cell_size, borderwidth=0,
                                 highlightthickness=0)
         self.canvas.grid(row=0, column=0, sticky='nsew')
 
-        self.average_temperature_label = tk.Label(self.parentFrame, text="Average Temperature: N/A")
+        self.average_temperature_label = tk.Label(self, text="Average Temperature: N/A")
         # self.average_temperature_label.pack()
+
+    def create_layout(self):
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
 
     def draw_board(self):
         self.canvas.delete("grid")
