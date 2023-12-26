@@ -1,17 +1,25 @@
-from cellConfigMSG import CellConfigMSG
+from configs import  IceBergConfig, SEA_NAME
 from cell import Cell
 
 
 class IceBerg(Cell):
 
-    def __init__(self, height, temperature, wind):
-        super().__init__(height, temperature, wind, "white", "I")
+    def __init__(self, config: IceBergConfig):
+        super().__init__(config)
 
     def copy(self):
-        return IceBerg(self.height, self.temperature, self.wind.copy())
+        return IceBerg(self.config.copy())
 
     def calcUpdate(self, neighborhood):
+
         temperature = self.calcTemperature(neighborhood)
         wind = self.calcWind(neighborhood)
+        new_config = self.config.copy()
+        new_config.wind = wind
+        new_config.temperature = temperature
 
-        return CellConfigMSG(type(self), self.height, temperature, wind)
+        if self.config.temperature > self.config.meltThreshold:
+            # above meltThreshold icebergs melt
+            new_config.name = SEA_NAME
+
+        return new_config

@@ -1,28 +1,22 @@
 # Cellular_automata
 A cellular automata simulation of global warming 
 
-
-
-
-
 # TODOS 
-
+# part A CODE
 ### General
-- change text to all new cells
-- present text in cells in a viewable way 
-### cellular automata view 
-- canvas rectangles and text return an ID 
-  save the canvas instead of creating and deleting rectangles all the time ?
-- or maybe use grid ? and labels with ids to change the background color and text based on active board
-- should the cellular autommat viewr wrap the class offer all CA ethos 
-    but call the CA given to it 
-### Wind
-- clouds should decrease temperature 
-- what should rain do 
-### Tiles 
-- maybe add temperature to a tile what should be the size of a tile
-    how can I fit all the info on one tile
-### temperature
- should temperature be based on height 
-or even base temp
-- better temperature random initialization 
+- add scroll bar to CAviewr
+- current season should be in GUI and what else like average temp and so on 
+
+# part  B CODE ASSISTED res in PDF
+
+- find by trial and error starting parameters for which the system is stable but not static in the course of a year 
+- measure the range of parameters in the course of a year print the average and mean error through time
+- make a graph that follows the parameters throu the year (fix parameters as written in white paper )
+
+# part C 
+- check the assumption that pollution affects other parameters in the system 
+- check correlation between other parameters and pollution 
+- check sensitivity of the system to pollution by keeping all other values the same while changing pollution
+
+### maybe if there is time 
+- fix grid wobbling issues 

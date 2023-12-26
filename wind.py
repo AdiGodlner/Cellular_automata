@@ -1,10 +1,20 @@
 import random
 
-WIND_DIRECTIONS = ["UP", "DOWN", "LEFT", "RIGHT"]
+UP = "UP"
+DOWN = "DOWN"
+LEFT = "LEFT"
+RIGHT = "RIGHT"
+
+WIND_DIRECTIONS = [UP, DOWN, LEFT, RIGHT]
+
+RAIN = "Rain"
+CLOUDY = "Cloudy"
+NO_CLOUDS = "NO_CLOUDS"
+CLOUDS_STATES = [RAIN, CLOUDY, NO_CLOUDS]
 
 
-def randomWind():
-    return Wind(random.choice(WIND_DIRECTIONS), random.randint(0, 35), 0, random.choice([True, False]))
+def randomWind(pollution):
+    return Wind(random.choice(WIND_DIRECTIONS), random.randint(0, 35), pollution, random.choice(CLOUDS_STATES))
 
 
 class Wind:
