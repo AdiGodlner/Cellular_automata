@@ -31,14 +31,19 @@ def board_copy(board):
 
 class CellularAutomata:
     def __init__(self, config: CellularAutomataConfig):
-        # randomize board for game of life
         self.config = config
+        # randomize board for game
         self.green_board = [[self.random_cell() for _ in range(self.config.rows)] for _ in range(self.config.columns)]
         self.blue_board = board_copy(self.green_board)
         self.curr_board = "green"
         self.average_temperature = 0
 
     def random_cell(self):
+        """
+            Randomly chooses a cell type and creates an instance of the chosen cell type.
+
+            :return: (Cell) An instance of the chosen cell type.
+        """
         # Randomly choose a cell type (e.g., Land , Sea, Ice )
         options = [LAND_NAME, CITY_NAME, FOREST_NAME, SEA_NAME, ICEBERG_NAME]
         probabilities = self.config.cell_type_probabilities  # Adjust these probabilities as needed
@@ -53,6 +58,12 @@ class CellularAutomata:
         return self.createCellByConfig(cellConfig)
 
     def getStartingPollutionByCellName(self, name):
+        """
+        Gets the starting pollution value based on the cell type name.
+
+        :param name: (str) The name of the cell type.
+        :return: (float) The starting pollution value.
+        """
         if name == FOREST_NAME:
             return self.config.forest_starting_pollution
         elif name == CITY_NAME:
@@ -64,8 +75,13 @@ class CellularAutomata:
         elif name == SEA_NAME:
             return self.config.sea_starting_pollution
 
-
     def createCellByConfig(self, cellConfig) -> Cell:
+        """
+         Creates a cell instance based on the given cell configuration.
+
+         :param cellConfig: (CellConfig) The cell configuration.
+         :return: (Cell) An instance of the cell type based on the configuration.
+         """
         name = cellConfig.name
         if name == FOREST_NAME:
             new_config = ForestConfig.fromCellConfig(cellConfig, self.config.pollutionRemovalRate,
@@ -85,7 +101,12 @@ class CellularAutomata:
             return Sea(new_config)
 
     def getCellTempByName(self, name):
+        """
+        Gets a random temperature value based on the cell type name.
 
+        :param name: (str) The name of the cell type.
+        :return: (float) A random temperature value.
+        """
         if name == FOREST_NAME:
             return random.uniform(self.config.forest_min_temp, self.config.forest_max_temp)
         elif name == CITY_NAME:
@@ -98,7 +119,9 @@ class CellularAutomata:
             return random.uniform(self.config.sea_min_temp, self.config.sea_max_temp)
 
     def update_board(self):
-
+        """
+        Updates the cellular automata board based on the rules of each cell.
+        """
         background_board = self.get_background_board()
         active_board = self.get_active_board()
         totalTmep = 0
@@ -127,7 +150,13 @@ class CellularAutomata:
         self.curr_board = "blue" if self.curr_board == "green" else "green"
 
     def get_neighborhood(self, row, col):
+        """
+            Gets the neighborhood of a cell.
 
+            :param row: (int) The row index of the cell.
+            :param col: (int) The column index of the cell.
+            :return: (list of lists) The neighborhood of the cell.
+        """
         neighborhood = []
         board = self.get_active_board()
 
@@ -163,7 +192,17 @@ class CellularAutomata:
         return neighborhood
 
     def get_active_board(self):
+        """
+        Gets the active board.
+
+        :return: (list of lists) The active board.
+        """
         return self.green_board if self.curr_board == "green" else self.blue_board
 
     def get_background_board(self):
+        """
+        Gets the background board.
+
+        :return: (list of lists) The background board.
+        """
         return self.green_board if self.curr_board != "green" else self.blue_board

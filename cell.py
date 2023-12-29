@@ -9,39 +9,63 @@ AUTUMN = "AUTUMN"
 
 
 class Cell:
+    """
+     Represents a cell in the cellular automata simulation
+
+     Attributes:
+     - config (CellConfig): Configuration object holding all attributes of the cell
+     """
 
     def __init__(self, cellConfig):
         self.config = cellConfig  # a ticking clock that goes between 0 and 100 to vary temperature by season
 
     def update(self, configuration: CellConfig):
-        self.config.time += 1
+        """
+        Update the cell with a new configuration
+        :param configuration: (CellConfig): New configuration for the cell
+        """
+
+        if self.config.time < 100:
+            self.config.time += 1
+        else:
+            self.config.time = 0
+
         self.config.temperature = configuration.temperature
         self.config.wind = configuration.wind
-        # wind:{self.wind}\n clouds{'C' if self.wind.clouds else '_'}
         self.config.text = self.get_text()
 
-    def calcUpdate(self, neighbors):
+    def calcUpdate(self, neighborhood):
+        """
+        Abstract method that should be implemented by all of its subClasses
+        calculate the next configuration of the cell based on its neighbors
+
+        :param neighborhood: List representing the cell's neighborhood
+
+        :returns CellConfig: New configuration for the cell.
+        """
+
         pass
 
-    def calcTemperature(self, neighborhood):
+    def calcTemperature(self):
+        """
+        Calculate the temperature of the cell
+         considering pollution and seasonal changes
 
-        pollutionTempIncrease = 1 + (self.config.wind.pollution / 100)
-        runningTemp = self.config.temperature
-        neighborsCount = 1
-
-        # for row in neighborhood:
-        #     for cell in row:
-        #         if cell is not None:
-        #             neighborsCount += 1
-        #             runningTemp += cell.config.temperature
-
-        temprature = int(runningTemp * pollutionTempIncrease) // neighborsCount
+        :returns int: The calculated temperature
+        """
+        temprature = int(self.config.temperature + (self.config.wind.pollution / 10))
         temprature += self.getTempratureSeasonChange()
 
         return temprature
 
     def calcWind(self, neighborhood):
+        """
+        Calculate the wind configuration of the cell based on its neighbors
 
+        :param neighborhood: List representing the cell's neighborhood
+
+        :returns Wind: The new wind configuration for the cell
+        """
         upWind = 0
         leftWind = 0
         incoming_clouds = []
@@ -74,6 +98,10 @@ class Cell:
             incoming_clouds.append(rightNeighbor.config.wind.clouds)
             pollution += leftNeighbor.config.wind.pollution
 
+        # hard cap negative pollution at -5
+        if pollution < -5:
+            pollution = -5
+
         clouds = self.calc_incoming_clouds(incoming_clouds)
 
         windSpeed = int(max(abs(upWind), abs(leftWind)))
@@ -81,9 +109,14 @@ class Cell:
         return Wind(windDirection, windSpeed, pollution, clouds)
 
     def calc_wind_direction(self, upWind, leftWind):
+        """
+        Calculate the wind direction based on the incoming winds from neighbors
 
-        windDirection = None
+        :param upWind: The total incoming wind from above and below
+        :param leftWind: The total incoming wind from the left and right
 
+        :returns str: The calculated wind direction
+        """
         if abs(upWind) > abs(leftWind):
             windDirection = "UP" if upWind > 0 else "DOWN"
         else:
@@ -93,23 +126,38 @@ class Cell:
         return windDirection
 
     def seasonWindChange(self, windDirection):
-        windDirectionIndex = WIND_DIRECTIONS.index(windDirection)
+        """
+        Change the wind direction based on seasonal changes
+
+        :param windDirection: The current wind direction
+
+        :returns str: The new wind direction.
+        """
         seasonChange = self.checkSeasonChange()
         if seasonChange is None:
             return windDirection
-        elif seasonChange == WINTER:
-            windDirectionIndex += 1
-        elif seasonChange == SPRING:
-            windDirectionIndex += 2
-        elif seasonChange == SUMMER:
-            windDirectionIndex += 3
-        elif seasonChange == AUTUMN:
-            windDirectionIndex += 3
+        else:
+            return self.skewWindDirection(windDirection, 1)
 
+    def skewWindDirection(self, windDirection, skewIndex):
+        """
+        Change the wind direction based on the skew index
+
+        :param windDirection: The current wind direction
+        :param skewIndex: The amount by which to skew the wind direction
+
+        :returns str: The new wind direction
+        """
+        windDirectionIndex = WIND_DIRECTIONS.index(windDirection) + skewIndex
         windDirectionIndex = windDirectionIndex % 4
         return WIND_DIRECTIONS[windDirectionIndex]
 
     def getTempratureSeasonChange(self):
+        """
+        Get the temperature change based on seasonal changes
+
+        :returns int: The temperature change.
+        """
         seasonChange = self.checkSeasonChange()
         if seasonChange is None:
             return 0
@@ -123,6 +171,11 @@ class Cell:
             return -5
 
     def checkSeasonChange(self):
+        """
+        Check if a seasonal change has occurred and return the new season
+
+        :returns str or None: The new season
+        """
         if self.config.time == 0:
             return WINTER
         elif self.config.time == 25:
@@ -134,12 +187,47 @@ class Cell:
         else:
             return None
 
+    def getSeason(self):
+        """
+            Get current season based on current cell's time
+
+            :returns str or None: The current season
+        """
+
+        if self.config.time < 25:
+            return WINTER
+        elif self.config.time < 50:
+            return SPRING
+        elif self.config.time < 75:
+            return SUMMER
+        elif self.config.time < 101:
+            return AUTUMN
+        else:
+            return None
+
     def calc_incoming_wind_speed(self, other):
+        """
+        Calculate the incoming wind speed based on height differences
+        between self and other cell
+        :param
+        - incoming_clouds: List of cloud states from neighboring cells.
+
+        Returns:
+        - str: The calculated cloud state ("Rain", "Cloudy", or "NO_CLOUDS").
+        """
         wind_speedup = other.config.height - self.config.height
         return other.config.wind.speed + wind_speedup
 
     def calc_incoming_clouds(self, incoming_clouds):
+        """
+        Calculate the incoming cloud state based on neighbors
 
+        Parameters:
+        - incoming_clouds: List of cloud states from neighboring cells.
+
+        Returns:
+        - str: The calculated cloud state ("Rain", "Cloudy", or "NO_CLOUDS").
+        """
         cloudCount = 0
         rainCount = 0
 
@@ -165,7 +253,7 @@ class Cell:
         return (f"Temp: {self.config.temperature}\n"
                 f"Type: {self.config.name}\n"
                 f"Wind: {self.config.wind.speed}\n"
-                f"Poll: {self.config.wind.pollution}\n"
+                f"Poll: {self.config.wind.pollution:2f}\n"
                 f"WindDirection: {self.config.wind.direction}\n"
                 f"Clouds: {self.config.wind.clouds}\n"
                 )

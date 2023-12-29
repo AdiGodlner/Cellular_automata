@@ -1,3 +1,33 @@
+"""
+Cellular Automata Configuration
+
+This module defines classes for configuring the cellular automata simulation. It includes configurations for different types of cells, such as Forest, City, IceBerg, Land, and Sea.
+
+Classes:
+    - CellConfig: Base class for cell configurations.
+    - ForestConfig: Configuration for Forest cells.
+    - CityConfig: Configuration for City cells.
+    - IceBergConfig: Configuration for IceBerg cells.
+    - LandConfig: Configuration for Land cells.
+    - SeaConfig: Configuration for Sea cells.
+    - CellularAutomataConfig: Overall configuration for the cellular automata simulation.
+
+Constants:
+    - FOREST_NAME: Name for Forest cells.
+    - CITY_NAME: Name for City cells.
+    - ICEBERG_NAME: Name for IceBerg cells.
+    - LAND_NAME: Name for Land cells.
+    - SEA_NAME: Name for Sea cells.
+
+Usage:
+    CellularAutomataConfig is used to configure the simulation.
+    for both the actual cellular automata and general
+    configurations like the time between turns
+
+    The other classes like ForestConfig, CityConfig, etc.
+    are used to create cells of different types.
+
+"""
 from wind import Wind
 
 # cellNames
@@ -147,7 +177,7 @@ class CellularAutomataConfig:
     def __init__(self
                  ,
                  # board configs
-
+                 roundTimeMS,
                  rows,
                  columns,
                  # general configs
@@ -195,6 +225,7 @@ class CellularAutomataConfig:
 
                  ):
         # board configs
+        self.roundTimeMS = roundTimeMS
         self.rows = rows
         self.columns = columns
         # general configs
